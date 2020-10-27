@@ -27,6 +27,11 @@ const item3 = new Item({
 });
 const defaultItems = [item1,item2,item3];
 
+const listSchema = {
+    name: String,
+    items: [itemsSchema]
+};
+const List = mongoose.model("List", listSchema);
 app.get('/', function(req, res){
     Item.find({},function(err, foundItems){
 
@@ -44,6 +49,27 @@ app.get('/', function(req, res){
         }
     });
 });
+
+app.get('/:customListName', function(req, res){
+    const customListName = req.params.customListName;
+    List.findOne({name: customListName}, function(err, foundList){
+        if(!err){
+            if(!foundList){
+                //create a new list
+                const list = new List({
+                    name:customListName,
+                    items: defaultItems
+                });
+                list.save();
+                res.redirect('/' + customListName);
+            }else{
+                //show existing list
+                res.render('list',{listTitle:foundList.name, newListItem : foundList.items})
+            }
+        }
+    });
+    
+});
 // app.get('/', function(req, res){
 //     var today = new Date();
 //     var options = {
@@ -58,19 +84,34 @@ app.get('/', function(req, res){
     
 // });
 app.post("/",function(req, res){ 
-
-    var item = req.body.newItem;
-
-    if(req.body.list === "Work"){
-        workItems.push(item);
-        res.redirect('/work');
-    }else{
-        items.push(item);
+    const itemName = req.body.newItem;
+    const listName = req.body.list;
+    
+    const item = new Item({
+        name: itemName
+    });
+    if(listName === 'Today'){
+        item.save();
         res.redirect('/');
+    }else{
+        List.findOne({name:listName}, function(err, foundList){
+            foundList.items.push(item);
+            foundList.save();
+            res.redirect('/' + listName);
+        });
     }
+    item.save();
+    res.redirect('/');
 });
-app.get('/work', function(req, res){
-    res.render('list', {listTitle: "Work", newListItem: workItems});
+
+app.post('/delete',function(req, res){
+    const checkedItemId = req.body.checkbox;
+    Item.findByIdAndRemove(checkedItemId, function(err){
+        if(!err){
+            console.log('Successfully Deleted');
+            res.redirect('/');
+        }
+    })
 });
 
 app.get('/about', function(req, res){
