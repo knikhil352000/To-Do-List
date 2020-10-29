@@ -9,6 +9,7 @@
                 <input type="checkbox" name="checkbox" value=<%=array._id %> onChange="this.form.submit()">
                 <p><%= array.name %></p>
             </div>
+            <input type="hidden" name="listName" value="<%= listTitle %>"></input>
         </form>
         <%})%>
         <form action="/" method="post">
@@ -16,6 +17,4 @@
             <button type="submit" name="list" value="<%= listTitle %>">+</button>
         </form>
     </div>
-    
-
 <%- include('footer') -%>
